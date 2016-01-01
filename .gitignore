@@ -26,3 +26,8 @@
 *.exe
 *.out
 *.app
+
+/x64
+*.suo
+*.sdf
+
