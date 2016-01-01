@@ -7,6 +7,7 @@
 #include "plustache/context.hpp"
 #include "soap-client.hpp"
 #include "ews-client-global.h"
+#include "xml2json.hpp"
 
 using namespace SimpleSoap;
 
