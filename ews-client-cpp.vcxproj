@@ -81,7 +81,7 @@
       <WarningLevel>Level3</WarningLevel>
       <Optimization>Disabled</Optimization>
       <SDLCheck>true</SDLCheck>
-      <AdditionalIncludeDirectories>C:\cygwin64\home\htao\soap-client-cpp\include;C:\cygwin64\home\htao\Simple-Web-Server;C:\cygwin64\home\htao\spdlog\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>C:\cygwin64\home\htao\soap-client-cpp\include;C:\cygwin64\home\htao\Simple-Web-Server;C:\cygwin64\home\htao\spdlog\include;C:\cygwin64\home\htao\plustache\include;C:\openssl-1.0.1l-vs2013\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <GenerateDebugInformation>true</GenerateDebugInformation>
@@ -108,7 +108,7 @@
       <FunctionLevelLinking>true</FunctionLevelLinking>
       <IntrinsicFunctions>true</IntrinsicFunctions>
       <SDLCheck>true</SDLCheck>
-      <AdditionalIncludeDirectories>C:\cygwin64\home\htao\soap-client-cpp\include;C:\cygwin64\home\htao\Simple-Web-Server;C:\cygwin64\home\htao\spdlog\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>C:\cygwin64\home\htao\soap-client-cpp\include;C:\cygwin64\home\htao\Simple-Web-Server;C:\cygwin64\home\htao\spdlog\include;C:\cygwin64\home\htao\plustache\include;C:\openssl-1.0.1l-vs2013\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <GenerateDebugInformation>true</GenerateDebugInformation>
@@ -119,6 +119,9 @@
   <ItemGroup>
     <ClInclude Include="ews-client-global.h" />
     <ClInclude Include="ews-client.h" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="index.cpp" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
