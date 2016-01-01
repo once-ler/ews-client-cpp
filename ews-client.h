@@ -6,12 +6,6 @@
 #include "plustache/plustache_types.hpp"
 #include "plustache/context.hpp"
 #include "soap-client.hpp"
-
-#include <openssl/ssl.h>
-#include <openssl/err.h>
-#include <openssl/bio.h>
-// download from http://www.nongnu.org/libntlm/releases/ homepage => http://www.nongnu.org/libntlm/
-#include "ntlm.h"
 #include "ews-client-global.h"
 
 using namespace SimpleSoap;
@@ -61,6 +55,11 @@ namespace ews {
       generator_impl(){ tpl = "tpl/root"; }
 
     };
+
+    /*
+      Other implementations below
+      See here: https://msdn.microsoft.com/en-us/library/aa580675(v=exchg.80).aspx
+    */
 
   }
 }
