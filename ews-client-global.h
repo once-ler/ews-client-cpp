@@ -3,9 +3,9 @@
 
 #include <iostream>
 
-#include <openssl/ssl.h>
-#include <openssl/err.h>
-#include <openssl/bio.h>
+//#include <openssl/ssl.h>
+//#include <openssl/err.h>
+//#include <openssl/bio.h>
 // download from http://www.nongnu.org/libntlm/releases/ homepage => http://www.nongnu.org/libntlm/
 #include "ntlm.h"
 #include "base64.hpp";

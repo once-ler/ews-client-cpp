@@ -5,11 +5,11 @@
 #include "plustache/template.hpp"
 #include "plustache/plustache_types.hpp"
 #include "plustache/context.hpp"
-#include "soap-client.hpp"
+//#include "soap-client.hpp"
 #include "ews-client-global.h"
 #include "xml2json.hpp"
 
-using namespace SimpleSoap;
+//using namespace SimpleSoap;
 
 namespace ews {
   namespace client {
