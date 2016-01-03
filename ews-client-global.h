@@ -33,6 +33,8 @@ namespace ews {
   */
   class NtlmHelper {
   public:
+    NtlmHelper(){};
+    ~NtlmHelper(){};
     int login() {
 
       //no certificate verification

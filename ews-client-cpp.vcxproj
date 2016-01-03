@@ -81,11 +81,16 @@
       <WarningLevel>Level3</WarningLevel>
       <Optimization>Disabled</Optimization>
       <SDLCheck>true</SDLCheck>
-      <AdditionalIncludeDirectories>C:\cygwin64\home\htao\soap-client-cpp\include;C:\cygwin64\home\htao\Simple-Web-Server;C:\cygwin64\home\htao\spdlog\include;C:\cygwin64\home\htao\plustache\include;C:\openssl-1.0.1l-vs2013\include;C:\cygwin64\home\htao\libntlm-1.4\include;C:\cygwin64\home\htao\xml2json\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>C:\cygwin64\home\htao\soap-client-cpp\include;C:\cygwin64\home\htao\Simple-Web-Server;C:\cygwin64\home\htao\spdlog\include;C:\cygwin64\home\htao\plustache\include;C:\openssl-1.0.1l-vs2013\include;C:\cygwin64\home\htao\libntlm-1.4\include;C:\cygwin64\home\htao\xml2json\include;C:\local\boost_1_57_0;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <GenerateDebugInformation>true</GenerateDebugInformation>
+      <AdditionalLibraryDirectories>C:\local\boost_1_57_0\lib64-msvc-12.0;C:\cygwin64\home\htao\openssl-1.0.1l-vs2013\lib64;C:\cygwin64\home\htao\libntlm-1.4\lib;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <AdditionalDependencies>libeay32MTd.lib;ssleay32MTd.lib;libntlm.dll.a;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
+    <PreBuildEvent>
+      <Command>copy /Y "C:\cygwin64\home\htao\libntlm-1.4\bin\libntlm-0.dll" "$(TargetDir)libntlm-0.dll"</Command>
+    </PreBuildEvent>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
     <ClCompile>
@@ -108,13 +113,18 @@
       <FunctionLevelLinking>true</FunctionLevelLinking>
       <IntrinsicFunctions>true</IntrinsicFunctions>
       <SDLCheck>true</SDLCheck>
-      <AdditionalIncludeDirectories>C:\cygwin64\home\htao\soap-client-cpp\include;C:\cygwin64\home\htao\Simple-Web-Server;C:\cygwin64\home\htao\spdlog\include;C:\cygwin64\home\htao\plustache\include;C:\openssl-1.0.1l-vs2013\include;C:\cygwin64\home\htao\libntlm-1.4\include;C:\cygwin64\home\htao\xml2json\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>C:\cygwin64\home\htao\soap-client-cpp\include;C:\cygwin64\home\htao\Simple-Web-Server;C:\cygwin64\home\htao\spdlog\include;C:\cygwin64\home\htao\plustache\include;C:\openssl-1.0.1l-vs2013\include;C:\cygwin64\home\htao\libntlm-1.4\include;C:\cygwin64\home\htao\xml2json\include;C:\local\boost_1_57_0;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
       <OptimizeReferences>true</OptimizeReferences>
+      <AdditionalLibraryDirectories>C:\local\boost_1_57_0\lib64-msvc-12.0;C:\cygwin64\home\htao\openssl-1.0.1l-vs2013\lib64;C:\cygwin64\home\htao\libntlm-1.4\lib;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <AdditionalDependencies>libeay32MT.lib;ssleay32MT.lib;libntlm.dll.a;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
+    <PreBuildEvent>
+      <Command>copy /Y "C:\cygwin64\home\htao\libntlm-1.4\bin\libntlm-0.dll" "$(TargetDir)libntlm-0.dll"</Command>
+    </PreBuildEvent>
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClInclude Include="base64.hpp" />
