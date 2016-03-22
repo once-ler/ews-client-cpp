@@ -1,14 +1,10 @@
+#pragma once
+
 #ifndef EWS_CLIENT_H
 #define EWS_CLIENT_H
 
-#include <iostream>
-#include "plustache/template.hpp"
-#include "plustache/plustache_types.hpp"
-#include "plustache/context.hpp"
-//#include "soap-client.hpp"
+#include "durian.h"
 #include "ews-client-global.h"
-#include "xml2json.hpp"
-
 //using namespace SimpleSoap;
 
 namespace ews {

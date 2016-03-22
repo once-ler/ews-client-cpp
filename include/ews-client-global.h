@@ -1,14 +1,14 @@
+#pragma once
+
 #ifndef EWS_CLIENT_GLOBAL_H
 #define EWS_CLIENT_GLOBAL_H
 
-#include <iostream>
+#include "durian.h"
 
 //#include <openssl/ssl.h>
 //#include <openssl/err.h>
 //#include <openssl/bio.h>
 // download from http://www.nongnu.org/libntlm/releases/ homepage => http://www.nongnu.org/libntlm/
-#include "ntlm.h"
-#include "base64.hpp";
 
 #include "client_https.hpp"
 
@@ -33,12 +33,12 @@ namespace ews {
   */
   class NtlmHelper {
   public:
-    NtlmHelper(){};
+    NtlmHelper(const string _host, const string _path, const string _domain, const string _user, const string _pass) : host(_host), path(_path), domain(_domain), user(_user), pass(_pass){};
     ~NtlmHelper(){};
     int login() {
 
       //no certificate verification
-      client = make_shared<HttpsClient>(ews::global::EWS_HOST, false);
+      client = make_shared<HttpsClient>(this->host, false);
       
       auto rc = this->sendDummy()
         ->sendAuthorization()
@@ -47,6 +47,7 @@ namespace ews {
       return rc;
     };
   private:
+    string host, path, domain, user, pass;
     shared_ptr<HttpsClient> client;
     tSmbNtlmAuthRequest request;
     tSmbNtlmAuthResponse response;
@@ -57,13 +58,13 @@ namespace ews {
     */
     NtlmHelper* sendDummy() {
 
-      auto r1 = client->request("GET", ews::global::EWS_WSDL);
+      auto r1 = client->request("GET", this->path);
       return this;
     }
 
     NtlmHelper* sendAuthorization() {
 
-      buildSmbNtlmAuthRequest(&this->request, ews::global::USERNAME.c_str(), ews::global::WINDOWS_DOMAIN.c_str());
+      buildSmbNtlmAuthRequest(&this->request, this->user.c_str(), this->domain.c_str());
       if (SmbLength(&request) > 1024){
         return 0;
       }
@@ -74,8 +75,8 @@ namespace ews {
 
       header["Connection"] = "Keep-Alive";
       header["Authorization"] = "NTLM " + encoded;
-
-      auto r1 = client->request("GET", ews::global::EWS_WSDL, header);
+      
+      auto r1 = client->request("GET", this->path, "", header);
 
       // read the answer, r1 = NTLM answer
       stringstream ss;
@@ -88,7 +89,7 @@ namespace ews {
 
     int authenticate() {
 
-      buildSmbNtlmAuthResponse((tSmbNtlmAuthChallenge *)this->decoded.c_str(), &this->response, ews::global::USERNAME.c_str(), ews::global::PASSWORD.c_str());
+      buildSmbNtlmAuthResponse((tSmbNtlmAuthChallenge *)this->decoded.c_str(), &this->response, this->user.c_str(), this->pass.c_str());
       encodedpass = base64_encode((unsigned char *)&this->response, SmbLength(&this->response));
       
       std::map<std::string, std::string> header;
@@ -96,7 +97,7 @@ namespace ews {
       header["Connection"] = "Keep-Alive";
       header["Authorization"] = "NTLM " + encodedpass;
 
-      auto r1 = client->request("GET", ews::global::EWS_WSDL, header);
+      auto r1 = client->request("GET", this->path, "", header);
 
       stringstream ss;
       ss << r1->content.rdbuf();

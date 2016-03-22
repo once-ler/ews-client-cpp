@@ -81,15 +81,18 @@
       <WarningLevel>Level3</WarningLevel>
       <Optimization>Disabled</Optimization>
       <SDLCheck>true</SDLCheck>
-      <AdditionalIncludeDirectories>C:\cygwin64\home\htao\soap-client-cpp\include;C:\cygwin64\home\htao\Simple-Web-Server;C:\cygwin64\home\htao\spdlog\include;C:\cygwin64\home\htao\plustache\include;C:\openssl-1.0.1l-vs2013\include;C:\cygwin64\home\htao\libntlm-1.4\include;C:\cygwin64\home\htao\xml2json\include;C:\local\boost_1_57_0;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>C:\local\boost_1_57_0;C:\openssl-1.0.1l-vs2013\include;C:\cygwin64\home\htao\mongo-cxx-driver\src;C:\cygwin64\home\htao\mongo-cxx-driver\build\win32\64\dbg_off;C:\cygwin64\home\htao\durian\include</AdditionalIncludeDirectories>
+      <PreprocessorDefinitions>STATIC_LIBMONGOCLIENT;_WIN32_WINNT=0x600;_CRT_SECURE_NO_WARNINGS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <RuntimeLibrary>MultiThreadedDebug</RuntimeLibrary>
     </ClCompile>
     <Link>
       <GenerateDebugInformation>true</GenerateDebugInformation>
-      <AdditionalLibraryDirectories>C:\local\boost_1_57_0\lib64-msvc-12.0;C:\cygwin64\home\htao\openssl-1.0.1l-vs2013\lib64;C:\cygwin64\home\htao\libntlm-1.4\lib;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
-      <AdditionalDependencies>libeay32MTd.lib;ssleay32MTd.lib;libntlm.dll.a;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalLibraryDirectories>C:\local\boost_1_57_0\lib64-msvc-12.0;C:\openssl-1.0.1l-vs2013\lib64;C:\cygwin64\home\htao\durian\x64\Debug_Lib;C:\cygwin64\home\htao\mongo-cxx-driver\build\win32\64\dbg_on;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <AdditionalDependencies>libeay32MTd.lib;ssleay32MTd.lib;durian.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
     <PreBuildEvent>
-      <Command>copy /Y "C:\cygwin64\home\htao\libntlm-1.4\bin\libntlm-0.dll" "$(TargetDir)libntlm-0.dll"</Command>
+      <Command>
+      </Command>
     </PreBuildEvent>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
@@ -113,26 +116,28 @@
       <FunctionLevelLinking>true</FunctionLevelLinking>
       <IntrinsicFunctions>true</IntrinsicFunctions>
       <SDLCheck>true</SDLCheck>
-      <AdditionalIncludeDirectories>C:\cygwin64\home\htao\soap-client-cpp\include;C:\cygwin64\home\htao\Simple-Web-Server;C:\cygwin64\home\htao\spdlog\include;C:\cygwin64\home\htao\plustache\include;C:\openssl-1.0.1l-vs2013\include;C:\cygwin64\home\htao\libntlm-1.4\include;C:\cygwin64\home\htao\xml2json\include;C:\local\boost_1_57_0;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>C:\local\boost_1_57_0;C:\openssl-1.0.1l-vs2013\include;C:\cygwin64\home\htao\mongo-cxx-driver\src;C:\cygwin64\home\htao\mongo-cxx-driver\build\win32\64\dbg_off;C:\cygwin64\home\htao\durian\include</AdditionalIncludeDirectories>
+      <PreprocessorDefinitions>STATIC_LIBMONGOCLIENT;_WIN32_WINNT=0x600;_CRT_SECURE_NO_WARNINGS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <RuntimeLibrary>MultiThreaded</RuntimeLibrary>
     </ClCompile>
     <Link>
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
       <OptimizeReferences>true</OptimizeReferences>
-      <AdditionalLibraryDirectories>C:\local\boost_1_57_0\lib64-msvc-12.0;C:\cygwin64\home\htao\openssl-1.0.1l-vs2013\lib64;C:\cygwin64\home\htao\libntlm-1.4\lib;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
-      <AdditionalDependencies>libeay32MT.lib;ssleay32MT.lib;libntlm.dll.a;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalLibraryDirectories>C:\local\boost_1_57_0\lib64-msvc-12.0;C:\openssl-1.0.1l-vs2013\lib64;C:\cygwin64\home\htao\durian\x64\Release_Lib;C:\cygwin64\home\htao\mongo-cxx-driver\build\win32\64\dbg_off;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <AdditionalDependencies>libeay32MT.lib;ssleay32MT.lib;durian.lib</AdditionalDependencies>
     </Link>
     <PreBuildEvent>
-      <Command>copy /Y "C:\cygwin64\home\htao\libntlm-1.4\bin\libntlm-0.dll" "$(TargetDir)libntlm-0.dll"</Command>
+      <Command>
+      </Command>
     </PreBuildEvent>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClInclude Include="base64.hpp" />
-    <ClInclude Include="ews-client-global.h" />
-    <ClInclude Include="ews-client.h" />
+    <ClCompile Include="index.cpp" />
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="index.cpp" />
+    <ClInclude Include="include\ews-client-global.h" />
+    <ClInclude Include="include\ews-client.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
