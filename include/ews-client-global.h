@@ -5,14 +5,10 @@
 
 #include "durian.h"
 
-//#include <openssl/ssl.h>
-//#include <openssl/err.h>
-//#include <openssl/bio.h>
+#include <openssl/ssl.h>
+#include <openssl/err.h>
+#include <openssl/bio.h>
 // download from http://www.nongnu.org/libntlm/releases/ homepage => http://www.nongnu.org/libntlm/
-
-#include "client_https.hpp"
-
-typedef SimpleWeb::Client<SimpleWeb::HTTPS> HttpsClient;
 
 using namespace std;
 
@@ -33,14 +29,22 @@ namespace ews {
   */
   class NtlmHelper {
   public:
-    NtlmHelper(const string _host, const string _path, const string _domain, const string _user, const string _pass) : host(_host), path(_path), domain(_domain), user(_user), pass(_pass){};
-    ~NtlmHelper(){};
+    NtlmHelper(const string _host, int _port, const string _path, const string _domain, const string _user, const string _pass) : host(_host), port(_port), path(_path), domain(_domain), user(_user), pass(_pass){};
+    ~NtlmHelper(){
+      this->destroySSL();
+      this->shutdownSSL();
+    };
     int login() {
 
       //no certificate verification
-      client = make_shared<HttpsClient>(this->host, false);
+      // client = make_shared<HttpsClient>(this->host, false);
       
-      auto rc = this->sendDummy()
+      api::socketImpl s1(host.c_str(), port);
+      auto rc1 = s1.connectImpl();
+      this->sock = s1.getSocket();
+
+      auto rc = this->initSSL()
+        ->sendDummy()
         ->sendAuthorization()
         ->authenticate();
 
@@ -48,66 +52,127 @@ namespace ews {
     };
   private:
     string host, path, domain, user, pass;
+    int port;
     shared_ptr<HttpsClient> client;
     tSmbNtlmAuthRequest request;
     tSmbNtlmAuthResponse response;
     string encoded, encodedpass, decoded, sBuffer;
+
+    std::shared_ptr<int> sock;
+    const SSL_METHOD *meth;
+    SSL *ssl;
+    BIO *sbio;
+    BIO *rbio;
+    BIO *wbio;
+    SSL_CTX *ctx;
+
+    NtlmHelper* initSSL() {
+      SSL_library_init();
+      SSL_load_error_strings();
+      meth = SSLv23_method();
+      ctx = SSL_CTX_new(meth);
+      // ssl will be our pipe
+      ssl = SSL_new(ctx);
+      sbio = BIO_new_socket(*sock, BIO_NOCLOSE);
+
+      SSL_set_bio(ssl, sbio, sbio);
+      SSL_connect(ssl);
+      return this;
+    }
+
+    NtlmHelper* destroySSL() {
+      ERR_free_strings();
+      EVP_cleanup();
+      return this;
+    }
+    NtlmHelper* shutdownSSL() {
+      SSL_shutdown(ssl);
+      SSL_free(ssl);
+      return this;
+    }
 
     /*
       send request to generate a 401 error
     */
     NtlmHelper* sendDummy() {
 
-      auto r1 = client->request("GET", this->path);
+      int returnBufLen = 1024;
+      char* returnBuf = (char*)malloc(returnBufLen);
+
+      stringstream apiRequest; 
+      apiRequest << "GET " << path << " HTTP/1.1\r\nUser-Agent: test\r\nHost: " << host << ":" << port << "\r\n\r\n";
+      auto r = apiRequest.str();
+      SSL_write(ssl, r.c_str(), r.size());
+
+      SSL_read(ssl, returnBuf, returnBufLen);
+      cout << returnBuf << endl;
+      free(returnBuf);
       return this;
     }
 
     NtlmHelper* sendAuthorization() {
+
+      int returnBufLen = 1024;
+      char* returnBuf = (char*)malloc(returnBufLen);
 
       buildSmbNtlmAuthRequest(&this->request, this->user.c_str(), this->domain.c_str());
       if (SmbLength(&request) > 1024){
         return 0;
       }
 
-      encoded = base64_encode((unsigned char *)&this->request, SmbLength(&this->request));
+      this->encoded = base64_encode((unsigned char *)&this->request, SmbLength(&this->request));
       
-      std::map<std::string, std::string> header;
+      stringstream apiRequest;
+      apiRequest << "GET " << path << " HTTP/1.1\r\nUser-Agent: test\r\nHost: " << host << ":" << port << "\r\nConnection: Keep-Alive\r\nAuthorization: NTLM " << this->encoded << "\r\n\r\n";
+      auto r = apiRequest.str();
+      SSL_write(ssl, r.c_str(), r.size());
 
-      header["Connection"] = "Keep-Alive";
-      header["Authorization"] = "NTLM " + encoded;
+      SSL_read(ssl, returnBuf, returnBufLen);
+
+      std::smatch m;
+      std::string s(returnBuf);
+      std::string first;
+      regex e("WWW-Authenticate:\\sNTLM\\s(.*)\\r\\n");
+      if (std::regex_search(s, m, e) && m.size() > 1) {
+        first = m.str(1);
+        regex f("WWW-Authenticate:\\sNTLM\\s");
+        first = regex_replace(first, f, "");
+        first = regex_replace(first, regex("\\r|\\n"), "");
+      }
       
-      auto r1 = client->request("GET", this->path, "", header);
-
-      // read the answer, r1 = NTLM answer
-      stringstream ss;
-      ss << r1->content.rdbuf();
-      this->decoded = base64_decode(ss.str());
-      
-      return this;      
-
+      this->decoded = base64_decode(first.c_str()); //expect NTLMSSP
+      cout << "==========\ndecoded => " << this->decoded.c_str() << "==========\n";
+      cout << returnBuf << endl;
+      free(returnBuf);
+      return this;
     }
 
     int authenticate() {
 
+      int returnBufLen = 1024;
+      char* returnBuf = (char*)malloc(returnBufLen);
+
       buildSmbNtlmAuthResponse((tSmbNtlmAuthChallenge *)this->decoded.c_str(), &this->response, this->user.c_str(), this->pass.c_str());
       encodedpass = base64_encode((unsigned char *)&this->response, SmbLength(&this->response));
       
-      std::map<std::string, std::string> header;
+      stringstream apiRequest;
+      apiRequest << "GET " << path << " HTTP/1.1\r\nUser-Agent: test\r\nHost: " << host << ":" << port << "\r\nConnection: Keep-Alive\r\nAuthorization: NTLM " << this->encodedpass << "\r\n\r\n";
+      auto r = apiRequest.str();
+      SSL_write(ssl, r.c_str(), r.size());
 
-      header["Connection"] = "Keep-Alive";
-      header["Authorization"] = "NTLM " + encodedpass;
+      SSL_read(ssl, returnBuf, returnBufLen);
+      cout << returnBuf << endl;
 
-      auto r1 = client->request("GET", this->path, "", header);
-
-      stringstream ss;
-      ss << r1->content.rdbuf();
-      this->decoded = base64_decode(ss.str());
-
-      // If IIS answer with 200 then your password was ok !
-      if (r1->status_code != "200") {
-        return 1;
+      std::smatch m;
+      std::string s(returnBuf);
+      if (std::regex_search(s, m, regex("200\\sOK")) && m.size() > 1) {
+        cout << "SUCCESS!" << endl;
+      }
+      else {
+        cout << "FAILED!" << endl;
       }
 
+      free(returnBuf);
       return 0;
     }
 

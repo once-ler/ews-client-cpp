@@ -82,7 +82,7 @@
       <Optimization>Disabled</Optimization>
       <SDLCheck>true</SDLCheck>
       <AdditionalIncludeDirectories>C:\local\boost_1_57_0;C:\openssl-1.0.1l-vs2013\include;C:\cygwin64\home\htao\mongo-cxx-driver\src;C:\cygwin64\home\htao\mongo-cxx-driver\build\win32\64\dbg_off;C:\cygwin64\home\htao\durian\include</AdditionalIncludeDirectories>
-      <PreprocessorDefinitions>STATIC_LIBMONGOCLIENT;_WIN32_WINNT=0x600;_CRT_SECURE_NO_WARNINGS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>STATIC_LIBMONGOCLIENT;_WIN32_WINNT=0x600;_CRT_SECURE_NO_WARNINGS;_WINSOCK_DEPRECATED_NO_WARNINGS;_WIN32;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <RuntimeLibrary>MultiThreadedDebug</RuntimeLibrary>
     </ClCompile>
     <Link>
@@ -117,7 +117,7 @@
       <IntrinsicFunctions>true</IntrinsicFunctions>
       <SDLCheck>true</SDLCheck>
       <AdditionalIncludeDirectories>C:\local\boost_1_57_0;C:\openssl-1.0.1l-vs2013\include;C:\cygwin64\home\htao\mongo-cxx-driver\src;C:\cygwin64\home\htao\mongo-cxx-driver\build\win32\64\dbg_off;C:\cygwin64\home\htao\durian\include</AdditionalIncludeDirectories>
-      <PreprocessorDefinitions>STATIC_LIBMONGOCLIENT;_WIN32_WINNT=0x600;_CRT_SECURE_NO_WARNINGS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>STATIC_LIBMONGOCLIENT;_WIN32_WINNT=0x600;_CRT_SECURE_NO_WARNINGS;_WINSOCK_DEPRECATED_NO_WARNINGS;_WIN32;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <RuntimeLibrary>MultiThreaded</RuntimeLibrary>
     </ClCompile>
     <Link>
@@ -133,7 +133,7 @@
     </PreBuildEvent>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClCompile Include="index.cpp" />
+    <ClCompile Include="test.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="include\ews-client-global.h" />
