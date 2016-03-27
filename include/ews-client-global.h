@@ -33,6 +33,7 @@ namespace ews {
     ~NtlmHelper(){
       this->destroySSL();
       this->shutdownSSL();
+      this->freeSSLContext();
     };
     int login() {
 
@@ -53,7 +54,7 @@ namespace ews {
   private:
     string host, path, domain, user, pass;
     int port;
-    shared_ptr<HttpsClient> client;
+    // shared_ptr<HttpsClient> client;
     tSmbNtlmAuthRequest request;
     tSmbNtlmAuthResponse response;
     string encoded, encodedpass, decoded, sBuffer;
@@ -90,22 +91,32 @@ namespace ews {
       SSL_free(ssl);
       return this;
     }
+    NtlmHelper* freeSSLContext() {
+      SSL_CTX_free(ctx);
+      return this;
+    }
 
     /*
       send request to generate a 401 error
     */
     NtlmHelper* sendDummy() {
 
-      int returnBufLen = 1024;
+      const int returnBufLen = 1024;
       char* returnBuf = (char*)malloc(returnBufLen);
+      int readBufLen = 0;
 
-      stringstream apiRequest; 
+      stringstream apiRequest;
       apiRequest << "GET " << path << " HTTP/1.1\r\nUser-Agent: test\r\nHost: " << host << ":" << port << "\r\n\r\n";
       auto r = apiRequest.str();
       SSL_write(ssl, r.c_str(), r.size());
 
-      SSL_read(ssl, returnBuf, returnBufLen);
-      cout << returnBuf << endl;
+      // SSL_read(ssl, returnBuf, returnBufLen);
+      do {
+        readBufLen = SSL_read(ssl, returnBuf, returnBufLen);
+        cout << returnBuf << endl;
+        memset(returnBuf, 0, returnBufLen);
+      } while (readBufLen == returnBufLen);
+
       free(returnBuf);
       return this;
     }
@@ -149,8 +160,11 @@ namespace ews {
 
     int authenticate() {
 
-      int returnBufLen = 1024;
+      const int returnBufLen = 16384; // should be static
       char* returnBuf = (char*)malloc(returnBufLen);
+      char destBuf[returnBufLen];
+      int readBufLen = 0;
+      stringstream ss;
 
       buildSmbNtlmAuthResponse((tSmbNtlmAuthChallenge *)this->decoded.c_str(), &this->response, this->user.c_str(), this->pass.c_str());
       encodedpass = base64_encode((unsigned char *)&this->response, SmbLength(&this->response));
@@ -159,6 +173,17 @@ namespace ews {
       apiRequest << "GET " << path << " HTTP/1.1\r\nUser-Agent: test\r\nHost: " << host << ":" << port << "\r\nConnection: Keep-Alive\r\nAuthorization: NTLM " << this->encodedpass << "\r\n\r\n";
       auto r = apiRequest.str();
       SSL_write(ssl, r.c_str(), r.size());
+
+      do {
+        readBufLen = SSL_read(ssl, returnBuf, returnBufLen);
+        memset(destBuf, 0, returnBufLen);
+        memcpy(destBuf, returnBuf, readBufLen);
+        cout << destBuf << endl;
+        ss << destBuf;
+        memset(returnBuf, 0, returnBufLen);
+      } while (readBufLen == returnBufLen);
+
+      cout << ss.str() << endl;
 
       SSL_read(ssl, returnBuf, returnBufLen);
       cout << returnBuf << endl;
