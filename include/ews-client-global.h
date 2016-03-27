@@ -37,9 +37,6 @@ namespace ews {
     };
     int login() {
 
-      //no certificate verification
-      // client = make_shared<HttpsClient>(this->host, false);
-      
       api::socketImpl s1(host.c_str(), port);
       auto rc1 = s1.connectImpl();
       this->sock = s1.getSocket();
@@ -49,12 +46,11 @@ namespace ews {
         ->sendAuthorization()
         ->authenticate();
 
-      return rc;
+      return this->isAuthenticated;
     };
   private:
     string host, path, domain, user, pass;
-    int port;
-    // shared_ptr<HttpsClient> client;
+    int port, isAuthenticated = 0;
     tSmbNtlmAuthRequest request;
     tSmbNtlmAuthResponse response;
     string encoded, encodedpass, decoded, sBuffer;
@@ -81,6 +77,24 @@ namespace ews {
       return this;
     }
 
+    string readAll(int maxBufSize) {
+      char* returnBuf = (char*)malloc(maxBufSize);
+      char* destBuf = (char*)malloc(maxBufSize);
+      int readBufLen = 0;
+      stringstream ss;
+      do {
+        readBufLen = SSL_read(ssl, returnBuf, maxBufSize);
+        memset(destBuf, 0, maxBufSize);
+        memcpy(destBuf, returnBuf, readBufLen);
+        ss << destBuf;
+        memset(returnBuf, 0, maxBufSize);
+      } while (readBufLen == maxBufSize);
+
+      free(returnBuf);
+      free(destBuf);
+      return ss.str();
+    }
+
     NtlmHelper* destroySSL() {
       ERR_free_strings();
       EVP_cleanup();
@@ -100,51 +114,34 @@ namespace ews {
       send request to generate a 401 error
     */
     NtlmHelper* sendDummy() {
-
-      const int returnBufLen = 1024;
-      char* returnBuf = (char*)malloc(returnBufLen);
-      int readBufLen = 0;
-
       stringstream apiRequest;
       apiRequest << "GET " << path << " HTTP/1.1\r\nUser-Agent: test\r\nHost: " << host << ":" << port << "\r\n\r\n";
       auto r = apiRequest.str();
       SSL_write(ssl, r.c_str(), r.size());
-
-      // SSL_read(ssl, returnBuf, returnBufLen);
-      do {
-        readBufLen = SSL_read(ssl, returnBuf, returnBufLen);
-        cout << returnBuf << endl;
-        memset(returnBuf, 0, returnBufLen);
-      } while (readBufLen == returnBufLen);
-
-      free(returnBuf);
+      auto resp = this->readAll(1024);
+      cout << resp << endl;
       return this;
     }
 
     NtlmHelper* sendAuthorization() {
-
-      int returnBufLen = 1024;
-      char* returnBuf = (char*)malloc(returnBufLen);
+      stringstream apiRequest;
 
       buildSmbNtlmAuthRequest(&this->request, this->user.c_str(), this->domain.c_str());
       if (SmbLength(&request) > 1024){
         return 0;
       }
-
+      // encode request with domain\user
       this->encoded = base64_encode((unsigned char *)&this->request, SmbLength(&this->request));
-      
-      stringstream apiRequest;
       apiRequest << "GET " << path << " HTTP/1.1\r\nUser-Agent: test\r\nHost: " << host << ":" << port << "\r\nConnection: Keep-Alive\r\nAuthorization: NTLM " << this->encoded << "\r\n\r\n";
       auto r = apiRequest.str();
       SSL_write(ssl, r.c_str(), r.size());
-
-      SSL_read(ssl, returnBuf, returnBufLen);
+      
+      auto resp = this->readAll(1024);
 
       std::smatch m;
-      std::string s(returnBuf);
       std::string first;
       regex e("WWW-Authenticate:\\sNTLM\\s(.*)\\r\\n");
-      if (std::regex_search(s, m, e) && m.size() > 1) {
+      if (std::regex_search(resp, m, e) && m.size() > 1) {
         first = m.str(1);
         regex f("WWW-Authenticate:\\sNTLM\\s");
         first = regex_replace(first, f, "");
@@ -152,53 +149,33 @@ namespace ews {
       }
       
       this->decoded = base64_decode(first.c_str()); //expect NTLMSSP
-      cout << "==========\ndecoded => " << this->decoded.c_str() << "==========\n";
-      cout << returnBuf << endl;
-      free(returnBuf);
+      cout << "==========\ndecoded => " << this->decoded.c_str() << "\n==========\n";
+      cout << resp << endl;
       return this;
     }
 
-    int authenticate() {
-
-      const int returnBufLen = 16384; // should be static
-      char* returnBuf = (char*)malloc(returnBufLen);
-      char destBuf[returnBufLen];
-      int readBufLen = 0;
-      stringstream ss;
-
-      buildSmbNtlmAuthResponse((tSmbNtlmAuthChallenge *)this->decoded.c_str(), &this->response, this->user.c_str(), this->pass.c_str());
-      encodedpass = base64_encode((unsigned char *)&this->response, SmbLength(&this->response));
-      
+    NtlmHelper* authenticate() {
       stringstream apiRequest;
+      
+      buildSmbNtlmAuthResponse((tSmbNtlmAuthChallenge *)this->decoded.c_str(), &this->response, this->user.c_str(), this->pass.c_str());
+      // encode request with password
+      this->encodedpass = base64_encode((unsigned char *)&this->response, SmbLength(&this->response));
       apiRequest << "GET " << path << " HTTP/1.1\r\nUser-Agent: test\r\nHost: " << host << ":" << port << "\r\nConnection: Keep-Alive\r\nAuthorization: NTLM " << this->encodedpass << "\r\n\r\n";
       auto r = apiRequest.str();
       SSL_write(ssl, r.c_str(), r.size());
 
-      do {
-        readBufLen = SSL_read(ssl, returnBuf, returnBufLen);
-        memset(destBuf, 0, returnBufLen);
-        memcpy(destBuf, returnBuf, readBufLen);
-        cout << destBuf << endl;
-        ss << destBuf;
-        memset(returnBuf, 0, returnBufLen);
-      } while (readBufLen == returnBufLen);
+      auto resp = this->readAll(16384);
 
-      cout << ss.str() << endl;
-
-      SSL_read(ssl, returnBuf, returnBufLen);
-      cout << returnBuf << endl;
+      cout << resp << endl;
 
       std::smatch m;
-      std::string s(returnBuf);
-      if (std::regex_search(s, m, regex("200\\sOK")) && m.size() > 1) {
+      if (std::regex_search(resp, m, regex("200\\sOK"))) {
         cout << "SUCCESS!" << endl;
-      }
-      else {
+        isAuthenticated = 1;
+      } else {
         cout << "FAILED!" << endl;
       }
-
-      free(returnBuf);
-      return 0;
+      return this;
     }
 
   };
